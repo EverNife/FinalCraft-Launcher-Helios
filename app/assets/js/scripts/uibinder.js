@@ -6,6 +6,7 @@
 const path          = require('path')
 
 const AuthManager   = require('./assets/js/authmanager')
+const AuthManagerOffline = require('./assets/js/offline/authmanager-offline')
 const ConfigManager = require('./assets/js/configmanager')
 const DistroManager = require('./assets/js/distromanager')
 const Lang          = require('./assets/js/langloader')
@@ -18,6 +19,7 @@ const VIEWS = {
     landing: '#landingContainer',
     loginOptions: '#loginOptionsContainer',
     login: '#loginContainer',
+    loginOffline: '#loginOfflineContainer',
     settings: '#settingsContainer',
     welcome: '#welcomeContainer',
     waiting: '#waitingContainer'

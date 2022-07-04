@@ -338,6 +338,15 @@ document.getElementById('settingsAddMicrosoftAccount').onclick = (e) => {
     })
 }
 
+// Bind the add offline account button.
+document.getElementById('settingsAddOfflineAccount').onclick = (e) => {
+    switchView(getCurrentView(), VIEWS.loginOffline, 500, 500, () => {
+        loginOfflineViewOnCancel = VIEWS.settings
+        loginOfflineViewOnSuccess = VIEWS.settings
+        loginCancelEnabled(true)
+    })
+}
+
 // Bind reply for Microsoft Login.
 ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
     if (arguments_[0] === MSFT_REPLY_TYPE.ERROR) {
@@ -501,6 +510,24 @@ function processLogOut(val, isLastAccount){
         switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
             ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount)
         })
+    } else if (targetAcc.type === 'offline') {
+        AuthManager.removeMicrosoftAccount(uuid).then(() => {
+            if(!isLastAccount && uuid === prevSelAcc.uuid){
+                const selAcc = ConfigManager.getSelectedAccount()
+                refreshAuthAccountSelected(selAcc.uuid)
+                updateSelectedAccount(selAcc)
+                validateSelectedAccount()
+            }
+            if(isLastAccount) {
+                loginOptionsCancelEnabled(false)
+                loginOptionsViewOnLoginSuccess = VIEWS.settings
+                loginOptionsViewOnLoginCancel = VIEWS.loginOptions
+                switchView(getCurrentView(), VIEWS.loginOptions)
+            }
+        })
+        $(parent).fadeOut(250, () => {
+            parent.remove()
+        })
     } else {
         AuthManager.removeMojangAccount(uuid).then(() => {
             if(!isLastAccount && uuid === prevSelAcc.uuid){
@@ -603,6 +630,7 @@ function refreshAuthAccountSelected(uuid){
 
 const settingsCurrentMicrosoftAccounts = document.getElementById('settingsCurrentMicrosoftAccounts')
 const settingsCurrentMojangAccounts = document.getElementById('settingsCurrentMojangAccounts')
+const settingsCurrentOfflineAccounts = document.getElementById('settingsCurrentOfflineAccounts')
 
 /**
  * Add auth account elements for each one stored in the authentication database.
@@ -617,6 +645,7 @@ function populateAuthAccounts(){
 
     let microsoftAuthAccountStr = ''
     let mojangAuthAccountStr = ''
+    let offlineAuthAccountStr = ''
 
     authKeys.forEach((val) => {
         const acc = authAccounts[val]
@@ -647,6 +676,8 @@ function populateAuthAccounts(){
 
         if(acc.type === 'microsoft') {
             microsoftAuthAccountStr += accHtml
+        } else if (acc.type === 'offline') {
+            offlineAuthAccountStr += accHtml
         } else {
             mojangAuthAccountStr += accHtml
         }
@@ -655,6 +686,7 @@ function populateAuthAccounts(){
 
     settingsCurrentMicrosoftAccounts.innerHTML = microsoftAuthAccountStr
     settingsCurrentMojangAccounts.innerHTML = mojangAuthAccountStr
+    settingsCurrentOfflineAccounts.innerHTML = offlineAuthAccountStr
 }
 
 /**
